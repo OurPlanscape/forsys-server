@@ -13,17 +13,15 @@ RUN apt-get update && \
     libsodium-dev libglpk-dev \
     postgresql-client
 
-RUN mkdir -p /usr/src/app
-WORKDIR /usr/src/app
+RUN mkdir -p /app
+WORKDIR /app
 
-COPY install.R /usr/src/app/
+COPY install.R /app/
 RUN Rscript install.R
 
-COPY .env /usr/src/app/
-COPY src/server.R /usr/src/app/server.R
-COPY src/rscripts /usr/src/app/rscripts
+COPY .env /app/
+COPY src/* /app
 
 EXPOSE 8000
 
-WORKDIR /usr/src/app
 CMD [ "Rscript", "--vanilla", "-e", "library(plumber); pr('server.R') %>% pr_run(host='0.0.0.0', port=8000)" ]
