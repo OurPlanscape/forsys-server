@@ -1,15 +1,12 @@
 library("logger")
 library(plumber)
 
-readRenviron(".env")
-
 # server.R
 
-#* Echo back the input
-#* @param msg The message to echo
-#* @get /echo
-function(msg="") {
-  list(msg = paste0("The message is: '", msg, "'"))
+#* Health check endpoint
+#* @get /health
+function() {
+  list(msg = paste0("I'm alive!"))
 }
 
 #* Execute Forsys
@@ -28,7 +25,7 @@ function(res, req, scenario_id=NULL) {
     return(list(error = "Scenario ID must be an integer."))
   })
   tryCatch({
-    FORSYS_PATCHMAX_WD <- Sys.getenv("FORSYS_PATCHMAX_WD", "/usr/src/app/")
+    FORSYS_PATCHMAX_WD <- Sys.getenv("FORSYS_PATCHMAX_WD", "/app/")
     setwd(FORSYS_PATCHMAX_WD)
     system("Rscript rscripts/forsys.R --scenario " %>% 
            glue::glue(scenario_id), intern = FALSE, wait = FALSE)

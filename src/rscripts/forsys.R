@@ -21,8 +21,6 @@ library("uuid")
 # do not use spherical geometries
 sf_use_s2(FALSE)
 
-readRenviron(".env")
-
 import::from("rscripts/io_processing.R", .all = TRUE)
 import::from("rscripts/queries.R", .all = TRUE)
 import::from("rscripts/constants.R", .all = TRUE)

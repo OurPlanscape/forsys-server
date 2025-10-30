@@ -1,10 +1,10 @@
 get_connection <- function() {
   connection <- dbConnect(RPostgres::Postgres(),
-    host = Sys.getenv("PLANSCAPE_DATABASE_HOST"),
-    dbname = Sys.getenv("PLANSCAPE_DATABASE_NAME"),
-    port = Sys.getenv("PLANSCAPE_DATABASE_PORT"),
-    user = Sys.getenv("PLANSCAPE_DATABASE_USER"),
-    password = Sys.getenv("PLANSCAPE_DATABASE_PASSWORD"),
+    host = Sys.getenv("DATABASE_HOST"),
+    dbname = Sys.getenv("DATABASE_NAME"),
+    port = Sys.getenv("DATABASE_PORT"),
+    user = Sys.getenv("DATABASE_USER"),
+    password = Sys.getenv("DATABASE_PASSWORD"),
   )
   return(connection)
 }

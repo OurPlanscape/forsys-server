@@ -7,7 +7,13 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgres://postgres:password@db/db
+      - DATABASE_HOST=db
+      - DATABASE_NAME=postgres
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=password
+      - DATABASE_PORT=5433
+      - FORSYS_PATCHMAX_WD=/app/
+      - FORSYS_OUTPUT_DIR=/app/src/output/
     working_dir: /app
     depends_on:
       - db

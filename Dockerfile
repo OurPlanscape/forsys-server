@@ -21,6 +21,7 @@ RUN Rscript install.R
 
 COPY .env /app/
 COPY src/* /app
+COPY src/rscripts /app/rscripts
 
 EXPOSE 8000
 

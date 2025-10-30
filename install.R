@@ -35,12 +35,10 @@ github_packages <- c(
 )
 
 pacman::p_load(packages, character.only=TRUE)
+pacman::p_load(github_packages, character.only=TRUE)
 
-if (!require("forsys")) {
-  # pacman is throwing errors to install from github :/
-  remotes::install_github("forsys-sp/forsysr")
-  remotes::install_github("forsys-sp/patchmax")
-  remotes::install_github("milesmcbain/friendlyeval")
-}
+remotes::install_github("forsys-sp/patchmax")
+remotes::install_github("forsys-sp/forsysr")
+remotes::install_github("milesmcbain/friendlyeval")
 
 print("INSTALLATION DONE")
