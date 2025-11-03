@@ -20,8 +20,8 @@ WORKDIR /app
 COPY install.R /app/
 RUN Rscript install.R
 
-COPY src/* /app
-COPY src/rscripts /app/rscripts
+COPY src/* /app/
+COPY src/rscripts /app/rscripts/
 
 EXPOSE 8000
 
