@@ -28,14 +28,7 @@ packages <- c(
   "plumber"
 )
 
-github_packages <- c(
-  "forsys-sp/forsysr",
-  "forsys-sp/patchmax",
-  "MilesMcBain/friendlyeval"
-)
-
 pacman::p_load(packages, character.only=TRUE)
-pacman::p_load(github_packages, character.only=TRUE)
 
 remotes::install_github("forsys-sp/patchmax")
 remotes::install_github("forsys-sp/forsysr")

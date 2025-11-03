@@ -4,7 +4,6 @@
 ## Replace `<scenario_id>` with an integer, corresponding with the scenario id
 library("DBI")
 library("dplyr")
-library("forsys")
 library("friendlyeval")
 library("glue")
 library("import")
@@ -18,6 +17,7 @@ library("stringi")
 library("stringr")
 library("tidyr")
 library("uuid")
+library("forsys")
 # do not use spherical geometries
 sf_use_s2(FALSE)
 
