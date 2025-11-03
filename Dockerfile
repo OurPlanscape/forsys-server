@@ -20,7 +20,6 @@ WORKDIR /app
 COPY install.R /app/
 RUN Rscript install.R
 
-COPY .env /app/
 COPY src/* /app
 COPY src/rscripts /app/rscripts
 
