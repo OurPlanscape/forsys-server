@@ -1,0 +1,47 @@
+## How to run this script?
+## From the planscape repo root, do:
+## Rscript rscripts/forsys.R --scenario <scenario_id>
+## Replace `<scenario_id>` with an integer, corresponding with the scenario id
+library("DBI")
+library("dplyr")
+library("friendlyeval")
+library("glue")
+library("import")
+library("logger")
+library("optparse")
+library("purrr")
+library("rjson")
+library("RPostgreSQL")
+library("sf")
+library("stringi")
+library("stringr")
+library("tidyr")
+library("uuid")
+library("forsys")
+# do not use spherical geometries
+sf_use_s2(FALSE)
+
+import::from("rscripts/io_processing.R", .all = TRUE)
+import::from("rscripts/queries.R", .all = TRUE)
+import::from("rscripts/constants.R", .all = TRUE)
+import::from("rscripts/base_forsys.R", .all = TRUE)
+import::from("rscripts/postprocessing.R", .all = TRUE)
+
+options <- list(
+  make_option(
+    c("-s", "--scenario",
+      type = "character", default = NULL,
+      help = "Scenario ID", metavar = "character"
+    )
+  )
+)
+parser <- OptionParser(option_list = options)
+options <- parse_args(parser)
+scenario_id <- options$scenario
+if (is.null(scenario_id)) {
+  print_help(parser)
+  stop("You need to specify one scenario id.")
+}
+
+
+main(scenario_id)
