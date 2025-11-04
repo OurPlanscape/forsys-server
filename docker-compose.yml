@@ -11,7 +11,7 @@ services:
       - DATABASE_NAME=postgres
       - DATABASE_USER=postgres
       - DATABASE_PASSWORD=password
-      - DATABASE_PORT=5433
+      - DATABASE_PORT=5432
       - FORSYS_PATCHMAX_WD=/app/
       - FORSYS_OUTPUT_DIR=/app/src/output/
     working_dir: /app
