@@ -611,6 +611,8 @@ call_forsys <- function(
 main <- function(scenario_id) {
   now <- now_utc()
   connection <- get_connection()
+  FORSYS_PATCHMAX_WD <- Sys.getenv("FORSYS_PATCHMAX_WD", "/app/")
+  setwd(FORSYS_PATCHMAX_WD)
   tryCatch(
     expr = {
       print(paste("[START]", now, "Scenario ID:", scenario_id))
