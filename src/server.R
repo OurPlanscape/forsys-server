@@ -25,6 +25,8 @@ function(res, req, scenario_id=NULL) {
     return(list(error = "Scenario ID must be an integer."))
   })
   tryCatch({
+    SERVER_PATCHMAX_WD <- Sys.getenv("SERVER_PATCHMAX_WD", "/app/")
+    setwd(SERVER_PATCHMAX_WD)
     system("Rscript rscripts/forsys.R --scenario " %>% 
            glue::glue(scenario_id), intern = FALSE, wait = FALSE)
     res$status <- 202
