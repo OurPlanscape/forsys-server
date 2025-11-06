@@ -1,4 +1,4 @@
-FROM rocker/r-ver:latest
+FROM rocker/geospatial:latest
 
 RUN apt-get update && \
     apt-get -y install \
