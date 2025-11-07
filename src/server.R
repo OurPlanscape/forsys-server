@@ -1,6 +1,5 @@
 library("logger")
-library(plumber)
-
+library("plumber")
 
 ## How to run this script?
 ## From the planscape repo root, do:
@@ -22,6 +21,7 @@ library("stringr")
 library("tidyr")
 library("uuid")
 library("forsys")
+
 # do not use spherical geometries
 sf_use_s2(FALSE)
 
