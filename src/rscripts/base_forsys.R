@@ -572,6 +572,10 @@ call_forsys <- function(
   
   tryCatch(
     expr = {
+      print(
+        paste0("stand_data type: ", class(stand_data))
+      )
+
       out <- forsys::run(
         return_outputs = TRUE,
         write_outputs = TRUE,

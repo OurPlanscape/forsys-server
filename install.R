@@ -25,6 +25,7 @@ packages <- c(
   "tidyr",
   "checkmate",
   "uuid",
+  "doParallel",
   "httpuv",
   "plumber"
 )
