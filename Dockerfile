@@ -57,7 +57,9 @@ RUN R -e "library(remotes); remotes::install_bitbucket('richierocks/assertive')"
 
 
 RUN R -e "library(remotes); remotes::install_github('forsys-sp/patchmax@patchmax_0.2.0')"
-RUN R -e "library(remotes); remotes::install_github('forsys-sp/forsysr')"
+
+# Install forsysr from specific commit to ensure compatibility with patchmax version
+RUN R -e "library(remotes); remotes::install_github('forsys-sp/forsysr@7b9641a5fd0be1e660944ef54c2d062bb2cd228c')"
 RUN R -e "library(remotes); remotes::install_github('milesmcbain/friendlyeval')"
 
 
