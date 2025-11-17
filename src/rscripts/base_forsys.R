@@ -633,6 +633,14 @@ main <- function(scenario_id) {
       stand_data <- get_stand_data_from_list(connection, stand_ids, datalayers)
 
       variables <- forsys_input$variables
+
+      print(stand_data)
+
+      geom <- sf::st_as_sf(stand_data)
+
+      print(geom)
+
+      dplyr::select(geom)
     },
     error = function(e) {
       completed_at <- now_utc()
