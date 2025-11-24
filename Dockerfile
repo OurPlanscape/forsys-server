@@ -52,24 +52,6 @@ RUN R -e "options(warn = 2); install.packages('doParallel', repos='https://cloud
 RUN R -e "options(warn = 2); install.packages('httpuv', repos='https://cloud.r-project.org/')"
 RUN R -e "options(warn = 2); install.packages('plumber', repos='https://cloud.r-project.org/')"
 
-# Required for patchmax pinned version
-# RUN R -e "options(warn = 2); library(remotes); remotes::install_github('cran/assertive.base')"
-# RUN R -e "options(warn = 2); library(remotes); remotes::install_github('cran/assertive.properties')"
-# RUN R -e "options(warn = 2); library(remotes); remotes::install_github('cran/assertive.types')"
-# RUN R -e "options(warn = 2); library(remotes); remotes::install_github('cran/assertive.numbers')"
-# RUN R -e "options(warn = 2); library(remotes); remotes::install_github('cran/assertive.strings')"
-# RUN R -e "options(warn = 2); library(remotes); remotes::install_github('cran/assertive.datetimes')"
-# RUN R -e "options(warn = 2); library(remotes); remotes::install_github('cran/assertive.files')"
-# RUN R -e "options(warn = 2); library(remotes); remotes::install_github('cran/assertive.sets')"
-# RUN R -e "options(warn = 2); library(remotes); remotes::install_github('cran/assertive.matrices')"
-# RUN R -e "options(warn = 2); library(remotes); remotes::install_github('cran/assertive.models')"
-# RUN R -e "options(warn = 2); library(remotes); remotes::install_github('cran/assertive.data')"
-# RUN R -e "options(warn = 2); library(remotes); remotes::install_github('cran/assertive.data.uk')"
-# RUN R -e "options(warn = 2); library(remotes); remotes::install_github('cran/assertive.data.us')"
-# RUN R -e "options(warn = 2); library(remotes); remotes::install_github('cran/assertive.reflection')"
-# RUN R -e "options(warn = 2); library(remotes); remotes::install_github('cran/assertive.code')"
-# RUN R -e "options(warn = 2); library(remotes); remotes::install_github('cran/assertive')"
-
 
 # Install pinned versions of forsys packages
 RUN R -e "options(warn = 2); library(remotes); remotes::install_github('forsys-sp/patchmax')"
