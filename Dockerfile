@@ -54,8 +54,8 @@ RUN R -e "options(warn = 2); install.packages('plumber', repos='https://cloud.r-
 
 
 # Install pinned versions of forsys packages
-RUN R -e "options(warn = 2); library(remotes); remotes::install_github('forsys-sp/patchmax')"
-RUN R -e "options(warn = 2); library(remotes); remotes::install_github('forsys-sp/forsysr')"
+RUN R -e "options(warn = 2); library(remotes); remotes::install_github('forsys-sp/patchmax@848824320348b163d31a85cee84149b5664a1ac1')"
+RUN R -e "options(warn = 2); library(remotes); remotes::install_github('forsys-sp/forsysr@179045ffc861ad5f6c313c726d70885e9071df20')"
 RUN R -e "options(warn = 2); library(remotes); remotes::install_github('milesmcbain/friendlyeval')"
 
 

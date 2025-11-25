@@ -540,19 +540,6 @@ call_forsys <- function(
       sample_frac <- variables$sample_frac
       exclusion_limit <- variables$exclusion_limit
       seed <- variables$seed
-      print(
-        paste0(
-          "variables fields | ",
-          "number_of_projects: ", number_of_projects, 
-          " min_area_project: ", min_area_project,
-          " max_area_project: ", max_area_project, 
-          " sdw: ", sdw, 
-          " epw: ", epw, 
-          " sample_frac: ", sample_frac, 
-          " exclusion_limit: ", exclusion_limit, 
-          " seed:", seed
-        )
-      )
       
       stand_thresholds <- get_stand_thresholds(connection, thresholds)
       forsys_inputs <- data.table::rbindlist(list(priorities, secondary_metrics, thresholds))
@@ -572,10 +559,6 @@ call_forsys <- function(
   
   tryCatch(
     expr = {
-      print(
-        paste0("stand_data type: ", class(stand_data))
-      )
-
       out <- forsys::run(
         return_outputs = TRUE,
         write_outputs = TRUE,
@@ -633,14 +616,6 @@ main <- function(scenario_id) {
       stand_data <- get_stand_data_from_list(connection, stand_ids, datalayers)
 
       variables <- forsys_input$variables
-
-      print(stand_data)
-
-      geom <- sf::st_as_sf(stand_data)
-
-      print(geom)
-
-      dplyr::select(geom)
     },
     error = function(e) {
       completed_at <- now_utc()
