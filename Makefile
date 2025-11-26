@@ -6,14 +6,14 @@ ENV=dev
 VERSION="$$(date '+%Y.%m.%d')-$$(git log --abbrev=10 --format=%h | head -1)"
 APP=$(APP_NAME)-$(ENV)
 DOCKER_REPO=planscape-$(APP_NAME)-$(ENV)
-DOCKER_TAG=us-central1-docker.pkg.dev/$(PROJECT)/$(DOCKER_REPO)/$(APP_NAME):$(VERSION)
 REGION=us-central1
+DOCKER_TAG=$(REGION)-docker.pkg.dev/$(PROJECT)/$(DOCKER_REPO)/$(APP_NAME):$(VERSION)
 
 build:
 	docker build -t $(DOCKER_TAG) .
 
 push:
-	gcloud builds submit --tag $(DOCKER_TAG)
+	gcloud builds submit --tag $(DOCKER_TAG) --timeout=7200
 
 deploy:
 	gcloud run deploy $(APP) --image $(DOCKER_TAG) --platform managed --region $(REGION)

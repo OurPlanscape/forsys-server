@@ -540,19 +540,6 @@ call_forsys <- function(
       sample_frac <- variables$sample_frac
       exclusion_limit <- variables$exclusion_limit
       seed <- variables$seed
-      print(
-        paste0(
-          "variables fields | ",
-          "number_of_projects: ", number_of_projects, 
-          " min_area_project: ", min_area_project,
-          " max_area_project: ", max_area_project, 
-          " sdw: ", sdw, 
-          " epw: ", epw, 
-          " sample_frac: ", sample_frac, 
-          " exclusion_limit: ", exclusion_limit, 
-          " seed:", seed
-        )
-      )
       
       stand_thresholds <- get_stand_thresholds(connection, thresholds)
       forsys_inputs <- data.table::rbindlist(list(priorities, secondary_metrics, thresholds))
