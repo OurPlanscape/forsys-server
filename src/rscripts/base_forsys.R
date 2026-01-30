@@ -615,7 +615,7 @@ main <- function(scenario_id) {
       scenario <- get_scenario_by_id(connection, scenario_id)
       forsys_input <- get_forsys_input(scenario)
 
-      datalayers <- data.table::rbindlist(forsys_input$datalayers)
+      datalayers <- data.table::rbindlist(forsys_input$datalayers, fill = TRUE)
       priorities <- filter(datalayers, type == "RASTER", usage_type == "PRIORITY")
       secondary_metrics <- filter(datalayers, type == "RASTER", usage_type == "SECONDARY_METRIC")
       thresholds <- filter(datalayers, type == "RASTER", usage_type == "THRESHOLD")
