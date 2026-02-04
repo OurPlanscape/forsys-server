@@ -264,30 +264,27 @@ get_stand_size <- function(configuration) {
   return(stand_size)
 }
 
-get_weights <- function(priorities, configuration) {
-  # no v2 changes
-  weight_count <- length(configuration$weights)
+get_weights <- function(priorities) {
+  target_count <- nrow(priorities)
 
-  target_count <- nrow(remove_duplicates(priorities))
-
-  if (weight_count == 0) {
+  if (!("weight" %in% names(priorities)) || target_count == 0) {
     print("generating weights")
     return(rep(1, target_count))
   }
 
-  if (weight_count < target_count) {
-    print("padding weights")
-    return(
-      c(configuration$weights, rep(1, target_count - weight_count))
-    )
-  }
+  weights <- vapply(
+    seq_len(target_count),
+    function(i) {
+      w <- priorities[["weight"]][[i]]
+      if (is.null(w) || is.na(w)) {
+        return(1)
+      }
+      return(w)
+    },
+    numeric(1)
+  )
 
-  if (weight_count > target_count) {
-    print("trimming weights")
-    return(configuration$weights[1:target_count])
-  }
-  # just return configured weights
-  configuration$weights
+  return(weights)
 }
 
 get_number_of_projects <- function(scenario) {
@@ -528,7 +525,7 @@ call_forsys <- function(
   tryCatch(
     expr = {
       data_inputs <- data.table::rbindlist(list(priorities, secondary_metrics))
-      weights <- get_weights(priorities, get_configuration(scenario))
+      weights <- get_weights(priorities)
       fields <- paste0("datalayer_", priorities[["id"]])
       spm_fields <- paste0(fields, "_SPM")
       stand_data <- stand_data %>%
