@@ -639,7 +639,15 @@ main <- function(scenario_id) {
       datalayers <- remove_duplicates(datalayers)
       stand_data <- get_stand_data_from_list(connection, stand_ids, datalayers)
 
-      run_with_patchmax <- forsys_input$run_with_patchmax
+      run_with_patchmax = TRUE
+      if ("run_with_patchmax" %in% names(forsys_input)) {
+        if (is.null(forsys_input$run_with_patchmax) | forsys_input$run_with_patchmax) {
+          run_with_patchmax = TRUE
+        } else {
+          run_with_patchmax = FALSE
+        }
+      }
+
       if (!run_with_patchmax) {
         # Prioritize sub-units
         projects_data <- forsys_input$projects_data
