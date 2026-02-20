@@ -521,7 +521,8 @@ call_forsys <- function(
   variables, 
   priorities, 
   secondary_metrics, 
-  thresholds) {
+  thresholds,
+  run_with_patchmax) {
   tryCatch(
     expr = {
       data_inputs <- data.table::rbindlist(list(priorities, secondary_metrics))
@@ -576,7 +577,8 @@ call_forsys <- function(
         stand_area_field = "area_acres",
         stand_id_field = "stand_id",
         stand_threshold = stand_thresholds,
-        run_with_patchmax = TRUE,
+        proj_id_field = "proj_id",
+        run_with_patchmax = run_with_patchmax,
         patchmax_proj_size_min = min_area_project,
         patchmax_proj_size = max_area_project,
         patchmax_proj_number = number_of_projects,
@@ -600,6 +602,21 @@ call_forsys <- function(
   
 }
 
+merge_project_data <- function(stand_data, projects_lookup_table) {
+  # merge lookup table to stand_data
+  # {
+  #   "<proj_id>": ["<stand_id>","<stand_id>",...],
+  #   "<proj_id>": ["<stand_id>","<stand_id>",...],
+  # }
+  df <- data.frame(
+    proj_id = rep(names(projects_lookup_table), lengths(projects_lookup_table)),
+    stand_id = unlist(projects_lookup_table),
+    row.names = NULL
+  )
+  data <- left_join(x = stand_data, y = stands, by = "stand_id")
+  return(data)
+}
+
 # Forsys execution with pre-processed stand data
 main <- function(scenario_id) {
   now <- now_utc()
@@ -618,8 +635,17 @@ main <- function(scenario_id) {
       thresholds <- filter(datalayers, type == "RASTER", usage_type == "THRESHOLD")
 
       stand_ids <- forsys_input$stand_ids
+
+      # When projects are pre-defined, it must run without patchmax, so forsys rank the existing project areas
+      run_with_patchmax <- !forsys_input$pre_defined_projects
+      
       datalayers <- remove_duplicates(datalayers)
       stand_data <- get_stand_data_from_list(connection, stand_ids, datalayers)
+
+      if (!run_with_patchmax) {
+        projects_data <- forsys_input$projects_data
+        stand_data <- merge_project_data(stand_data, projects_data)
+      }
 
       variables <- forsys_input$variables
     },
@@ -648,7 +674,8 @@ main <- function(scenario_id) {
         variables,
         priorities,
         secondary_metrics,
-        thresholds
+        thresholds,
+        run_with_patchmax
       )
 
       completed_at <- now_utc()
