@@ -636,13 +636,12 @@ main <- function(scenario_id) {
 
       stand_ids <- forsys_input$stand_ids
 
-      # When projects are pre-defined, it must run without patchmax, so forsys rank the existing project areas
-      run_with_patchmax <- !forsys_input$pre_defined_projects
-      
       datalayers <- remove_duplicates(datalayers)
       stand_data <- get_stand_data_from_list(connection, stand_ids, datalayers)
 
+      run_with_patchmax <- forsys_input$run_with_patchmax
       if (!run_with_patchmax) {
+        # Prioritize sub-units
         projects_data <- forsys_input$projects_data
         stand_data <- merge_project_data(stand_data, projects_data)
       }
