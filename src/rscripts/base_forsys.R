@@ -613,7 +613,9 @@ merge_project_data <- function(stand_data, projects_lookup_table) {
     stand_id = unlist(projects_lookup_table),
     row.names = NULL
   )
-  data <- left_join(x = stand_data, y = stands, by = "stand_id")
+  df$stand_id <- as.integer(df$stand_id)
+  df$proj_id <- as.integer(df$proj_id)
+  data <- left_join(x = stand_data, y = df, by = "stand_id")
   return(data)
 }
 
