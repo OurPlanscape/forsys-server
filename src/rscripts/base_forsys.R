@@ -566,28 +566,45 @@ call_forsys <- function(
   
   tryCatch(
     expr = {
-      out <- forsys::run(
-        return_outputs = TRUE,
-        write_outputs = TRUE,
-        overwrite_output = FALSE,
-        scenario_name = scenario$uuid, # using UUID here instead of name
-        scenario_output_fields = output_fields,
-        scenario_priorities = scenario_priorities,
-        stand_data = stand_data,
-        stand_area_field = "area_acres",
-        stand_id_field = "stand_id",
-        stand_threshold = stand_thresholds,
-        proj_id_field = "proj_id",
-        run_with_patchmax = run_with_patchmax,
-        patchmax_proj_size_min = min_area_project,
-        patchmax_proj_size = max_area_project,
-        patchmax_proj_number = number_of_projects,
-        patchmax_SDW = sdw,
-        patchmax_EPW = epw,
-        patchmax_exclusion_limit = exclusion_limit,
-        patchmax_sample_frac = sample_frac,
-        patchmax_sample_seed = seed
-      )
+      if (run_with_patchmax) {
+        out <- forsys::run(
+          return_outputs = TRUE,
+          write_outputs = TRUE,
+          overwrite_output = FALSE,
+          scenario_name = scenario$uuid, # using UUID here instead of name
+          scenario_output_fields = output_fields,
+          scenario_priorities = scenario_priorities,
+          stand_data = stand_data,
+          stand_area_field = "area_acres",
+          stand_id_field = "stand_id",
+          stand_threshold = stand_thresholds,
+          run_with_patchmax = TRUE,
+          patchmax_proj_size_min = min_area_project,
+          patchmax_proj_size = max_area_project,
+          patchmax_proj_number = number_of_projects,
+          patchmax_SDW = sdw,
+          patchmax_EPW = epw,
+          patchmax_exclusion_limit = exclusion_limit,
+          patchmax_sample_frac = sample_frac,
+          patchmax_sample_seed = seed
+        )
+      } else {
+        out <- forsys::run(
+          return_outputs = TRUE,
+          write_outputs = TRUE,
+          overwrite_output = FALSE,
+          scenario_name = scenario$uuid, # using UUID here instead of name
+          scenario_output_fields = output_fields,
+          scenario_priorities = scenario_priorities,
+          stand_data = stand_data,
+          stand_area_field = "area_acres",
+          stand_id_field = "stand_id",
+          stand_threshold = stand_thresholds,
+          proj_id_field = "proj_id",
+          proj_fixed_target = FALSE,
+          run_with_patchmax = FALSE
+      }
+      
       summarized_metrics <- summarize_metrics(out, stand_data, data_inputs)
       attain_cols <- grep("^attain_", names(out$project_output), value = TRUE)
       out$project_output <- out$project_output[, setdiff(names(out$project_output), attain_cols), drop = FALSE]
