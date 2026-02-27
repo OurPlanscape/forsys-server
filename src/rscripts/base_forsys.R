@@ -602,6 +602,8 @@ call_forsys <- function(
           stand_threshold = stand_thresholds,
           proj_id_field = "proj_id",
           proj_fixed_target = FALSE,
+          proj_target_field = "area_acres",
+          proj_target_value = 1,
           run_with_patchmax = FALSE
         )
       }
