@@ -603,6 +603,7 @@ call_forsys <- function(
           proj_id_field = "proj_id",
           proj_fixed_target = FALSE,
           run_with_patchmax = FALSE
+        )
       }
       
       summarized_metrics <- summarize_metrics(out, stand_data, data_inputs)
