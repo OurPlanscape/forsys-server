@@ -600,7 +600,7 @@ call_forsys <- function(
           stand_area_field = "area_acres",
           stand_id_field = "stand_id",
           stand_threshold = stand_thresholds,
-          proj_id_field = "proj_id",
+          proj_id_field = "sub_unit_id",
           proj_fixed_target = FALSE,
           proj_target_field = "area_acres",
           proj_target_value = 1,
@@ -625,15 +625,15 @@ call_forsys <- function(
 merge_project_data <- function(stand_data, projects_lookup_table) {
   # merge lookup table to stand_data
   # {
-  #   "<proj_id>": ["<stand_id>","<stand_id>",...],
-  #   "<proj_id>": ["<stand_id>","<stand_id>",...],
+  #   "<sub_unit_id>": ["<stand_id>","<stand_id>",...],
+  #   "<sub_unit_id>": ["<stand_id>","<stand_id>",...],
   # }
   df <- data.frame(
-    proj_id = rep(names(projects_lookup_table), lengths(projects_lookup_table)),
+    sub_unit_id = rep(names(projects_lookup_table), lengths(projects_lookup_table)),
     stand_id = unlist(projects_lookup_table),
     row.names = NULL
   )
-  df$stand_id <- as.integer(df$stand_id)
+  df$sub_unit_id <- as.integer(df$sub_unit_id)
   df$proj_id <- as.integer(df$proj_id)
   data <- left_join(x = stand_data, y = df, by = "stand_id")
   return(data)
