@@ -588,6 +588,7 @@ call_forsys <- function(
           patchmax_sample_frac = sample_frac,
           patchmax_sample_seed = seed
         )
+        stand_output <- out$stand_output
       } else {
         out <- forsys::run(
           return_outputs = TRUE,
@@ -606,9 +607,10 @@ call_forsys <- function(
           proj_target_value = 1,
           run_with_patchmax = FALSE
         )
+        stand_output <- rename_column_in_list(out$stand_output, "sub_unit_id", "proj_id") # rename column `sub_unit_id` to `proj_id`
       }
       
-      summarized_metrics <- summarize_metrics(out, stand_data, data_inputs)
+      summarized_metrics <- summarize_metrics(stand_output, stand_data, data_inputs)
       attain_cols <- grep("^attain_", names(out$project_output), value = TRUE)
       out$project_output <- out$project_output[, setdiff(names(out$project_output), attain_cols), drop = FALSE]
       out$project_output <- out$project_output |> left_join(summarized_metrics, by = "proj_id")
