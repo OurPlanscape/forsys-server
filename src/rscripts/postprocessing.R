@@ -6,7 +6,7 @@ rename_column_in_list <- function(in_list, old_column_name, new_column_name) {
   new_obj <- list()
   for (nm in names(in_list)) {
     new_name <- if (nm == old_column_name) new_column_name else nm
-    new_obj[[new_name]] <- rename_copy(in_list[[nm]])
+    new_obj[[new_name]] <- in_list[[nm]]
   }
   
   return(new_obj)
