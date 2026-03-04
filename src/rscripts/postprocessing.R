@@ -1,17 +1,3 @@
-rename_column_in_list <- function(in_list, old_column_name, new_column_name) {
-  if (!is.list(in_list)) {
-    return(in_list)
-  }
-  
-  new_obj <- list()
-  for (nm in names(in_list)) {
-    new_name <- if (nm == old_column_name) new_column_name else nm
-    new_obj[[new_name]] <- in_list[[nm]]
-  }
-  
-  return(new_obj)
-}
-
 summarize_metrics <- function(forsys_output, stand_data, datalayers) {
   fields <- paste0("datalayer_", datalayers[["id"]])
   pcp_fields <- paste0("datalayer_", datalayers[["id"]], "_PCP")

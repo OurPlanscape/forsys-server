@@ -607,7 +607,7 @@ call_forsys <- function(
           proj_target_value = 1,
           run_with_patchmax = FALSE
         )
-        stand_output <- rename_column_in_list(out$stand_output, "sub_unit_id", "proj_id") # rename column `sub_unit_id` to `proj_id`
+        stand_output <- out$stand_output %>% rename(proj_id = sub_unit_id)
       }
       
       summarized_metrics <- summarize_metrics(stand_output, stand_data, data_inputs)
