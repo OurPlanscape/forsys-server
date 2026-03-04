@@ -7,7 +7,7 @@ summarize_metrics <- function(forsys_output, stand_data, datalayers) {
   lookup <- setNames(pcp_sum_fields, output_fields)
   stand_output <- select(
       filter(
-        forsys_output,
+        forsys_output$stand_output,
         DoTreat == 1
       ), 
       stand_id, 

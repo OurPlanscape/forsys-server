@@ -607,10 +607,11 @@ call_forsys <- function(
           proj_target_value = 1,
           run_with_patchmax = FALSE
         )
-        stand_output <- out$stand_output %>% rename(proj_id = sub_unit_id)
+        out$stand_output  <- out$stand_output %>% rename(proj_id = sub_unit_id)
+        out$project_output <- out$project_output %>% rename(proj_id = sub_unit_id)
       }
       
-      summarized_metrics <- summarize_metrics(stand_output, stand_data, data_inputs)
+      summarized_metrics <- summarize_metrics(out, stand_data, data_inputs)
       attain_cols <- grep("^attain_", names(out$project_output), value = TRUE)
       out$project_output <- out$project_output[, setdiff(names(out$project_output), attain_cols), drop = FALSE]
       out$project_output <- out$project_output |> left_join(summarized_metrics, by = "proj_id")
