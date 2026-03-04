@@ -187,6 +187,23 @@ merge_data <- function(stands, metrics) {
   return(data)
 }
 
+merge_project_data <- function(stand_data, projects_lookup_table) {
+  # merge lookup table to stand_data
+  # {
+  #   "<sub_unit_id>": ["<stand_id>","<stand_id>",...],
+  #   "<sub_unit_id>": ["<stand_id>","<stand_id>",...],
+  # }
+  df <- data.frame(
+    sub_unit_id = rep(names(projects_lookup_table), lengths(projects_lookup_table)),
+    stand_id = unlist(projects_lookup_table),
+    row.names = NULL
+  )
+  df$stand_id <- as.integer(df$stand_id)
+  df$sub_unit_id <- as.integer(df$sub_unit_id)
+  data <- left_join(x = stand_data, y = df, by = "stand_id")
+  return(data)
+}
+
 now_utc <- function() {
   strftime(as.POSIXlt(Sys.time(), "UTC"), "%Y-%m-%dT%H:%M:%S")
 }
@@ -588,7 +605,6 @@ call_forsys <- function(
           patchmax_sample_frac = sample_frac,
           patchmax_sample_seed = seed
         )
-        stand_output <- out$stand_output
       } else {
         out <- forsys::run(
           return_outputs = TRUE,
@@ -623,23 +639,6 @@ call_forsys <- function(
     }
   )
   
-}
-
-merge_project_data <- function(stand_data, projects_lookup_table) {
-  # merge lookup table to stand_data
-  # {
-  #   "<sub_unit_id>": ["<stand_id>","<stand_id>",...],
-  #   "<sub_unit_id>": ["<stand_id>","<stand_id>",...],
-  # }
-  df <- data.frame(
-    sub_unit_id = rep(names(projects_lookup_table), lengths(projects_lookup_table)),
-    stand_id = unlist(projects_lookup_table),
-    row.names = NULL
-  )
-  df$stand_id <- as.integer(df$stand_id)
-  df$sub_unit_id <- as.integer(df$sub_unit_id)
-  data <- left_join(x = stand_data, y = df, by = "stand_id")
-  return(data)
 }
 
 # Forsys execution with pre-processed stand data
