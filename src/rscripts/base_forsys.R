@@ -187,6 +187,23 @@ merge_data <- function(stands, metrics) {
   return(data)
 }
 
+merge_project_data <- function(stand_data, projects_lookup_table) {
+  # merge lookup table to stand_data
+  # {
+  #   "<sub_unit_id>": ["<stand_id>","<stand_id>",...],
+  #   "<sub_unit_id>": ["<stand_id>","<stand_id>",...],
+  # }
+  df <- data.frame(
+    sub_unit_id = rep(names(projects_lookup_table), lengths(projects_lookup_table)),
+    stand_id = unlist(projects_lookup_table),
+    row.names = NULL
+  )
+  df$stand_id <- as.integer(df$stand_id)
+  df$sub_unit_id <- as.integer(df$sub_unit_id)
+  data <- left_join(x = stand_data, y = df, by = "stand_id")
+  return(data)
+}
+
 now_utc <- function() {
   strftime(as.POSIXlt(Sys.time(), "UTC"), "%Y-%m-%dT%H:%M:%S")
 }
@@ -521,7 +538,8 @@ call_forsys <- function(
   variables, 
   priorities, 
   secondary_metrics, 
-  thresholds) {
+  thresholds,
+  run_with_patchmax) {
   tryCatch(
     expr = {
       data_inputs <- data.table::rbindlist(list(priorities, secondary_metrics))
@@ -565,27 +583,50 @@ call_forsys <- function(
   
   tryCatch(
     expr = {
-      out <- forsys::run(
-        return_outputs = TRUE,
-        write_outputs = TRUE,
-        overwrite_output = FALSE,
-        scenario_name = scenario$uuid, # using UUID here instead of name
-        scenario_output_fields = output_fields,
-        scenario_priorities = scenario_priorities,
-        stand_data = stand_data,
-        stand_area_field = "area_acres",
-        stand_id_field = "stand_id",
-        stand_threshold = stand_thresholds,
-        run_with_patchmax = TRUE,
-        patchmax_proj_size_min = min_area_project,
-        patchmax_proj_size = max_area_project,
-        patchmax_proj_number = number_of_projects,
-        patchmax_SDW = sdw,
-        patchmax_EPW = epw,
-        patchmax_exclusion_limit = exclusion_limit,
-        patchmax_sample_frac = sample_frac,
-        patchmax_sample_seed = seed
-      )
+      if (run_with_patchmax) {
+        out <- forsys::run(
+          return_outputs = TRUE,
+          write_outputs = TRUE,
+          overwrite_output = FALSE,
+          scenario_name = scenario$uuid, # using UUID here instead of name
+          scenario_output_fields = output_fields,
+          scenario_priorities = scenario_priorities,
+          stand_data = stand_data,
+          stand_area_field = "area_acres",
+          stand_id_field = "stand_id",
+          stand_threshold = stand_thresholds,
+          run_with_patchmax = TRUE,
+          patchmax_proj_size_min = min_area_project,
+          patchmax_proj_size = max_area_project,
+          patchmax_proj_number = number_of_projects,
+          patchmax_SDW = sdw,
+          patchmax_EPW = epw,
+          patchmax_exclusion_limit = exclusion_limit,
+          patchmax_sample_frac = sample_frac,
+          patchmax_sample_seed = seed
+        )
+      } else {
+        out <- forsys::run(
+          return_outputs = TRUE,
+          write_outputs = TRUE,
+          overwrite_output = FALSE,
+          scenario_name = scenario$uuid, # using UUID here instead of name
+          scenario_output_fields = output_fields,
+          scenario_priorities = scenario_priorities,
+          stand_data = stand_data,
+          stand_area_field = "area_acres",
+          stand_id_field = "stand_id",
+          stand_threshold = stand_thresholds,
+          proj_id_field = "sub_unit_id",
+          proj_fixed_target = FALSE,
+          proj_target_field = "area_acres",
+          proj_target_value = 1,
+          run_with_patchmax = FALSE
+        )
+        out$stand_output  <- out$stand_output %>% rename(proj_id = sub_unit_id)
+        out$project_output <- out$project_output %>% rename(proj_id = sub_unit_id)
+      }
+      
       summarized_metrics <- summarize_metrics(out, stand_data, data_inputs)
       attain_cols <- grep("^attain_", names(out$project_output), value = TRUE)
       out$project_output <- out$project_output[, setdiff(names(out$project_output), attain_cols), drop = FALSE]
@@ -618,8 +659,24 @@ main <- function(scenario_id) {
       thresholds <- filter(datalayers, type == "RASTER", usage_type == "THRESHOLD")
 
       stand_ids <- forsys_input$stand_ids
+
       datalayers <- remove_duplicates(datalayers)
       stand_data <- get_stand_data_from_list(connection, stand_ids, datalayers)
+
+      run_with_patchmax = TRUE
+      if ("run_with_patchmax" %in% names(forsys_input)) {
+        if (is.null(forsys_input$run_with_patchmax) | forsys_input$run_with_patchmax) {
+          run_with_patchmax = TRUE
+        } else {
+          run_with_patchmax = FALSE
+        }
+      }
+
+      if (!run_with_patchmax) {
+        # Prioritize sub-units
+        projects_data <- forsys_input$projects_data
+        stand_data <- merge_project_data(stand_data, projects_data)
+      }
 
       variables <- forsys_input$variables
     },
@@ -648,7 +705,8 @@ main <- function(scenario_id) {
         variables,
         priorities,
         secondary_metrics,
-        thresholds
+        thresholds,
+        run_with_patchmax
       )
 
       completed_at <- now_utc()
