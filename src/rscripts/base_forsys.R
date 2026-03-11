@@ -564,6 +564,9 @@ call_forsys <- function(
       sample_frac <- variables$sample_frac
       exclusion_limit <- variables$exclusion_limit
       seed <- variables$seed
+
+      sub_units_fixed_target <- variables$sub_units_fixed_target
+      sub_units_target_value <- variables$sub_units_target_value
       
       stand_thresholds <- get_stand_thresholds(connection, thresholds)
       forsys_inputs <- data.table::rbindlist(list(priorities, secondary_metrics, thresholds))
@@ -618,9 +621,9 @@ call_forsys <- function(
           stand_id_field = "stand_id",
           stand_threshold = stand_thresholds,
           proj_id_field = "sub_unit_id",
-          proj_fixed_target = FALSE,
+          proj_fixed_target = sub_units_fixed_target,
           proj_target_field = "area_acres",
-          proj_target_value = 1,
+          proj_target_value = sub_units_target_value,
           run_with_patchmax = FALSE
         )
         out$stand_output  <- out$stand_output %>% rename(proj_id = sub_unit_id)
