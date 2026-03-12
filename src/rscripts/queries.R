@@ -18,15 +18,11 @@ get_scenario_by_id <- function(connection, scenario_id) {
 }
 
 get_datalayer_metric <- function(datalayer) {
-  if (is.null(datalayer$metadata)) {
+  if (is.null(datalayer$metric)) {
     return("avg")
   }
-  metadata <- fromJSON(datalayer$metadata)
-  metric <- metadata$modules$forsys$metric_column
-  if (is.null(metric)) {
-    return("avg")
-  }
-  metric
+  
+  datalayer$metric
 }
 
 get_stand_metrics <- function(connection, datalayer, stand_ids) {
