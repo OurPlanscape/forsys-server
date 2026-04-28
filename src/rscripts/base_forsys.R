@@ -555,7 +555,7 @@ call_forsys <- function(
           fields=spm_fields,
           weights=weights,
           new_field="priority"
-        ) %>%
+        )
       scenario_priorities <- c("priority")
 
       number_of_projects <- variables$number_of_projects
