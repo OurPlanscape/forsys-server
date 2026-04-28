@@ -546,14 +546,16 @@ call_forsys <- function(
       weights <- get_weights(priorities)
       fields <- paste0("datalayer_", priorities[["id"]])
       spm_fields <- paste0(fields, "_SPM")
+      secondary_fields <-  paste0("datalayer_", secondary_metrics[["id"]])
       stand_data <- stand_data %>%
         forsys::calculate_spm(fields=fields) %>% 
         forsys::calculate_pcp(fields=fields) %>% 
+        forsys::calculate_pcp(fields=secondary_fields) %>% 
         forsys::combine_priorities(
           fields=spm_fields,
           weights=weights,
           new_field="priority"
-        )
+        ) %>%
       scenario_priorities <- c("priority")
 
       number_of_projects <- variables$number_of_projects

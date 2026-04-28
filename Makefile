@@ -16,7 +16,7 @@ push:
 	gcloud builds submit --tag $(DOCKER_TAG) --timeout=7200
 
 deploy:
-	gcloud run deploy $(APP) --image $(DOCKER_TAG) --tag $(VERSION) --platform managed --region $(REGION)
+	gcloud run deploy $(APP) --image $(DOCKER_TAG) --platform managed --region $(REGION)
 
 build-deploy: build push deploy
 
