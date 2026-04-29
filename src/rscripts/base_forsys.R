@@ -115,7 +115,7 @@ to_properties <- function(
     rename_with(~ str_replace(.x, "attain_", ""))
   project_data <- forsys_project_outputs %>%
     filter(proj_id == project_id) %>%
-    select(-contains("Pr_1")) %>%
+    select(-contains("Pr_")) %>%
     select(-contains("attain_")) %>%
     mutate(stand_count = project_stand_count) %>%
     mutate(total_cost = ETrt_area_acres * scenario_cost_per_acre) %>%
@@ -546,9 +546,11 @@ call_forsys <- function(
       weights <- get_weights(priorities)
       fields <- paste0("datalayer_", priorities[["id"]])
       spm_fields <- paste0(fields, "_SPM")
+      secondary_fields <-  paste0("datalayer_", secondary_metrics[["id"]])
       stand_data <- stand_data %>%
         forsys::calculate_spm(fields=fields) %>% 
         forsys::calculate_pcp(fields=fields) %>% 
+        forsys::calculate_pcp(fields=secondary_fields) %>% 
         forsys::combine_priorities(
           fields=spm_fields,
           weights=weights,
