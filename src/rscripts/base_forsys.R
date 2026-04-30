@@ -548,7 +548,7 @@ call_forsys <- function(
       spm_fields <- paste0(priority_fields, "_SPM")
       fields <- paste0("datalayer_", data_inputs[["id"]])
       stand_data <- stand_data %>%
-        forsys::calculate_spm(fields=spm_fields) %>% 
+        forsys::calculate_spm(fields=priority_fields) %>% 
         forsys::calculate_pcp(fields=fields) %>%
         forsys::combine_priorities(
           fields=spm_fields,
