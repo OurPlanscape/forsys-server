@@ -544,13 +544,12 @@ call_forsys <- function(
     expr = {
       data_inputs <- data.table::rbindlist(list(priorities, secondary_metrics))
       weights <- get_weights(priorities)
-      fields <- paste0("datalayer_", priorities[["id"]])
-      spm_fields <- paste0(fields, "_SPM")
-      secondary_fields <-  paste0("datalayer_", secondary_metrics[["id"]])
+      priority_fields <- paste0("datalayer_", priorities[["id"]])
+      spm_fields <- paste0(priority_fields, "_SPM")
+      fields <- paste0("datalayer_", data_inputs[["id"]])
       stand_data <- stand_data %>%
-        forsys::calculate_spm(fields=fields) %>% 
-        forsys::calculate_pcp(fields=fields) %>% 
-        forsys::calculate_pcp(fields=secondary_fields) %>% 
+        forsys::calculate_spm(fields=spm_fields) %>% 
+        forsys::calculate_pcp(fields=fields) %>%
         forsys::combine_priorities(
           fields=spm_fields,
           weights=weights,
