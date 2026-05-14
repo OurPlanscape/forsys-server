@@ -630,6 +630,10 @@ call_forsys <- function(
         out$stand_output  <- out$stand_output %>% rename(proj_id = sub_unit_id)
         out$project_output <- out$project_output %>% rename(proj_id = sub_unit_id)
       }
+      if (nrow(out) == 0) {
+        print(paste("[ERROR] Forsys returned no result for scenario", scenario$id))
+        stop("ForSys returned an empty result.")
+      }
       
       summarized_metrics <- summarize_metrics(out, stand_data, data_inputs)
       attain_cols <- grep("^attain_", names(out$project_output), value = TRUE)
