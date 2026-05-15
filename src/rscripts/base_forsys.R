@@ -630,11 +630,11 @@ call_forsys <- function(
         out$stand_output  <- out$stand_output %>% rename(proj_id = sub_unit_id)
         out$project_output <- out$project_output %>% rename(proj_id = sub_unit_id)
       }
-      print(paste("[DEBUG] Stand output length:", length(out$stand_output)))
-      print(paste("[DEBUG] Project output length:", length(out$project_output)))
-      print(paste("[DEBUG] Subset output length:", length(out$subset_output)))
+      print(paste("[DEBUG] Stand output class:", class(out$stand_output)))
+      print(paste("[DEBUG] Project output class:", class(out$project_output)))
+      print(paste("[DEBUG] Subset output class:", class(out$subset_output)))
 
-      if (length(out$stand_output) == 0) {
+      if (nrow(out$stand_output) == 0) {
         print(paste("[ERROR] Forsys returned no result for scenario", scenario$id))
         stop("ForSys returned an empty result.")
       }
