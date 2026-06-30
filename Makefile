@@ -25,7 +25,7 @@ push:
 	@BUILDS=$$(gcloud builds list --filter="images:$(DOCKER_TAG)" --format=json); \
 	if [ "$$BUILDS" = "[]" ]; then \
 		echo "Pushing image $(DOCKER_TAG) ."; \
-		gcloud builds submit --tag $(DOCKER_TAG);\
+		gcloud builds submit --tag $(DOCKER_TAG) --timeout=7200;\
 	else \
 		echo "Image $(DOCKER_TAG) already submitted"; \
 	fi;
