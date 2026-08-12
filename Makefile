@@ -31,7 +31,7 @@ push:
 	fi;
 
 deploy:
-	gcloud run deploy $(APP) --image $(DOCKER_TAG) --platform managed --region $(REGION)
+	gcloud run jobs update $(APP) --image $(DOCKER_TAG) --region $(REGION)
 
 build-deploy: build push deploy
 
