@@ -12,7 +12,7 @@ function() {
 #* Execute Forsys
 #* @param scenario_id Scenario ID
 #* @post /run_forsys
-function(res, req, scenario_id=NULL) {
+function(res, req, scenario_id="") {
   log_info("Run forsys {scenario_id}")
   if(is.null(scenario_id) || scenario_id == "") {
     res$status <- 400

@@ -12,9 +12,9 @@ get_connection <- function() {
 get_output_dir <- function(scenario) {
   output_dir <- Sys.getenv("FORSYS_OUTPUT_DIR", "")
   if (output_dir == "") {
-    output_dir <- paste0(getwd(), "/output/")
+    output_dir <- file.path(getwd(), "output")
   }
-  return(paste0(output_dir, scenario$uuid))
+  return(file.path(output_dir, scenario$uuid))
 }
 
 preprocess_metrics <- function(metrics, condition_name) {
@@ -272,6 +272,38 @@ get_forsys_input <- function(scenario) {
   return(forsys_input)
 }
 
+get_datalayers <- function(forsys_input) {
+  required_columns <- c(
+    "id",
+    "name",
+    "metric",
+    "type",
+    "geometry_type",
+    "threshold",
+    "usage_type",
+    "weight"
+  )
+  datalayers <- data.table::rbindlist(forsys_input$datalayers, fill = TRUE)
+
+  if (ncol(datalayers) == 0) {
+    datalayers <- data.table::as.data.table(
+      setNames(
+        rep(list(logical(0)), length(required_columns)),
+        required_columns
+      )
+    )
+    return(datalayers)
+  }
+
+  for (column in required_columns) {
+    if (!(column %in% names(datalayers))) {
+      datalayers[[column]] <- rep(NA, nrow(datalayers))
+    }
+  }
+
+  return(datalayers)
+}
+
 get_stand_size <- function(configuration) {
   stand_size <- configuration$stand_size
   if (is.null(stand_size)) {
@@ -357,15 +389,56 @@ remove_duplicates <- function(dataframe) {
   return(dataframe %>% distinct(id, .keep_all = TRUE))
 }
 
+stop_with_status <- function(message, status) {
+  e <- simpleError(message)
+  e$status <- status
+  stop(e)
+}
+
+get_error_status <- function(e, default_status = "FAILURE") {
+  if (is.null(e$status) || is.na(e$status) || e$status == "") {
+    return(default_status)
+  }
+
+  return(e$status)
+}
+
+validate_forsys_output <- function(out) {
+  if (is.null(out)) {
+    stop_with_status(
+      "forsys::run returned no output. This usually means no feasible projects were found for the selected stands, thresholds, and project constraints.",
+      "FAILURE"
+    )
+  }
+
+  if (is.null(out$stand_output) || is.null(out$project_output)) {
+    stop_with_status(
+      "forsys::run returned an incomplete output: stand_output and project_output are required.",
+      "FAILURE"
+    )
+  }
+
+  if (nrow(out$stand_output) == 0 || nrow(out$project_output) == 0) {
+    stop_with_status(
+      "forsys::run returned empty output tables. No feasible treatment projects were produced.",
+      "FAILURE"
+    )
+  }
+
+  if (!("DoTreat" %in% names(out$stand_output)) || sum(out$stand_output$DoTreat == 1, na.rm = TRUE) == 0) {
+    stop_with_status(
+      "forsys::run returned no treated stands. No feasible treatment projects were produced.",
+      "FAILURE"
+    )
+  }
+}
+
 export_input <- function(scenario, stand_data) {
   output_dir <- get_output_dir(scenario)
   if (!dir.exists(output_dir)) {
-    dir.create(output_dir)
+    dir.create(output_dir, recursive = TRUE)
   }
   output_file <- paste0(output_dir, "/inputs.csv")
-  if (!file.exists(output_file)) {
-    file.create(output_file)
-  }
   layer_options <- c("GEOMETRY=AS_WKT")
   st_write(stand_data, output_file, layer_options = layer_options, append = FALSE, delete_dsn = TRUE)
 }
@@ -563,6 +636,9 @@ call_forsys <- function(
       sdw <- variables$spatial_distribution_weight
       epw <- variables$edge_proximity_weight
       sample_frac <- variables$sample_frac
+      if (is.null(sample_frac)) {
+        sample_frac <- variables$sample_fraction
+      }
       exclusion_limit <- variables$exclusion_limit
       seed <- variables$seed
 
@@ -580,7 +656,7 @@ call_forsys <- function(
       export_input(scenario, stand_data)
     },
     error = function(e) {
-      e$status <- "PANIC"
+      e$status <- get_error_status(e, "PANIC")
       stop(e)
     }
   )
@@ -627,6 +703,11 @@ call_forsys <- function(
           proj_target_value = sub_units_target_value,
           run_with_patchmax = FALSE
         )
+      }
+
+      validate_forsys_output(out)
+
+      if (!run_with_patchmax) {
         out$stand_output  <- out$stand_output %>% rename(proj_id = sub_unit_id)
         out$project_output <- out$project_output %>% rename(proj_id = sub_unit_id)
       }
@@ -637,15 +718,29 @@ call_forsys <- function(
         stop("ForSys returned an empty result.")
       }
       
-      summarized_metrics <- summarize_metrics(out, stand_data, data_inputs)
+      summarized_metrics <- tryCatch(
+        summarize_metrics(out, stand_data, data_inputs),
+        error = function(e) {
+          stop_with_status(
+            paste("Failed to summarize Forsys metrics:", e$message),
+            "FAILURE"
+          )
+        }
+      )
       attain_cols <- grep("^attain_", names(out$project_output), value = TRUE)
       out$project_output <- out$project_output[, setdiff(names(out$project_output), attain_cols), drop = FALSE]
       out$project_output <- out$project_output |> left_join(summarized_metrics, by = "proj_id")
       return(out)
     },
     error = function(e) {
-      e$status <- "FAILURE"
-      stop(e)
+      message <- paste("forsys::run failed:", e$message)
+      if (grepl("no applicable method for 'rename' applied to an object of class \"NULL\"", e$message, fixed = TRUE)) {
+        message <- "forsys::run failed because no search seeds or feasible treatment projects were found."
+      }
+      stop_with_status(
+        message,
+        get_error_status(e, "FAILURE")
+      )
     }
   )
   
@@ -663,10 +758,13 @@ main <- function(scenario_id) {
       scenario <- get_scenario_by_id(connection, scenario_id)
       forsys_input <- get_forsys_input(scenario)
 
-      datalayers <- data.table::rbindlist(forsys_input$datalayers, fill = TRUE)
+      datalayers <- get_datalayers(forsys_input)
       priorities <- filter(datalayers, type == "RASTER", usage_type == "PRIORITY")
       secondary_metrics <- filter(datalayers, type == "RASTER", usage_type == "SECONDARY_METRIC")
       thresholds <- filter(datalayers, type == "RASTER", usage_type == "THRESHOLD")
+      if (nrow(priorities) == 0) {
+        stop_with_status("Scenario must include at least one raster priority datalayer.", "FAILURE")
+      }
 
       stand_ids <- forsys_input$stand_ids
 
@@ -692,15 +790,16 @@ main <- function(scenario_id) {
     },
     error = function(e) {
       completed_at <- now_utc()
+      status <- get_error_status(e, "PANIC")
       upsert_scenario_result_statuses(
         connection,
         scenario_id,
         now,
         now,
         completed_at,
-        "PANIC"
+        status
       )
-      print(paste("[OK] Forsys PANIC for scenario", scenario_id))
+      print(paste("[OK] Forsys", status, "for scenario", scenario_id))
       print("[DONE - EARLY EXIT]")
       stop(e)
     }
@@ -746,15 +845,17 @@ main <- function(scenario_id) {
     },
     error = function(e) {
       completed_at <- now_utc()
+      status <- get_error_status(e)
+      print(paste("[ERROR]", e$message))
       upsert_scenario_result_statuses(
         connection,
         scenario_id,
         now,
         now,
         completed_at,
-        e$status
+        status
       )
-      print(paste("[OK] Forsys", e$status, "for scenario", scenario_id))
+      print(paste("[OK] Forsys", status, "for scenario", scenario_id))
       stop(e)
     },
     finally = {

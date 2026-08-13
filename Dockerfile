@@ -59,7 +59,7 @@ RUN R -e "options(warn = 2); library(remotes); remotes::install_github('forsys-s
 RUN R -e "options(warn = 2); library(remotes); remotes::install_github('milesmcbain/friendlyeval')"
 
 
-COPY src/* /app/
+COPY src/server.R /app/server.R
 COPY src/rscripts /app/rscripts/
 
 EXPOSE 8000

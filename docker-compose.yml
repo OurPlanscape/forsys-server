@@ -5,29 +5,31 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "8001:8000"
     environment:
       - DATABASE_HOST=db
       - DATABASE_NAME=postgres
       - DATABASE_USER=postgres
-      - DATABASE_PASSWORD=password
+      - DATABASE_PASSWORD=postgres
       - DATABASE_PORT=5432
       - FORSYS_PATCHMAX_WD=/app/
-      - FORSYS_OUTPUT_DIR=/app/src/output/
+      - SERVER_PATCHMAX_WD=/app/
+      - FORSYS_OUTPUT_DIR=/app/output/
     working_dir: /app
-    depends_on:
-      - db
-
-  db:
-    image: postgis/postgis:17-3.5-alpine
-    restart: unless-stopped
-    environment:
-      - POSTGRES_DB=db
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
     volumes:
-      - postgres:/data/postgres
-    ports:
-      - 5433:5432
-volumes:
-  postgres: null
+      - ./src/server.R:/app/server.R:ro
+      - ./src/rscripts:/app/rscripts:ro
+      - ./src/rscripts/base_forsys.R:/app/base_forsys.R:ro
+      - ./src/rscripts/constants.R:/app/constants.R:ro
+      - ./src/rscripts/forsys.R:/app/forsys.R:ro
+      - ./src/rscripts/io_processing.R:/app/io_processing.R:ro
+      - ./src/rscripts/postprocessing.R:/app/postprocessing.R:ro
+      - ./src/rscripts/queries.R:/app/queries.R:ro
+      - ../Planscape/src/planscape/output:/app/output
+    networks:
+      - planscape
+
+networks:
+  planscape:
+    external: true
+    name: planscape_default
