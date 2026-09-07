@@ -208,6 +208,35 @@ now_utc <- function() {
   strftime(as.POSIXlt(Sys.time(), "UTC"), "%Y-%m-%dT%H:%M:%S")
 }
 
+get_error_description <- function(error) {
+  if (is.null(error$message) || error$message == "") {
+    return(toString(error))
+  }
+
+  return(error$message)
+}
+
+set_scenario_error <- function(error, error_code) {
+  error$error_code <- error_code
+  return(error)
+}
+
+to_scenario_errors <- function(error) {
+  if (is.null(error)) {
+    return(list())
+  }
+
+  error_code <- error$error_code
+  if (is.null(error_code) || error_code == "") {
+    error_code <- "UNKNOWN_ERROR"
+  }
+
+  return(list(list(
+    error_code = error_code,
+    description = get_error_description(error)
+  )))
+}
+
 get_metric_data <- function(connection, stands, datalayer) {
   datalayer_id <- datalayer$id
   datalayer_name <- datalayer$name
@@ -440,7 +469,8 @@ upsert_scenario_result <- function(
     completed_at,
     scenario_id,
     status,
-    geojson_result) {
+    geojson_result,
+    errors = list()) {
   if (!is.null(geojson_result$features)) {
     geojson_result$features <- lapply(
       geojson_result$features,
@@ -457,7 +487,8 @@ upsert_scenario_result <- function(
     completed_at,
     scenario_id,
     status,
-    result
+    result,
+    errors
   ) VALUES (
     {created_at},
     {updated_at},
@@ -465,7 +496,8 @@ upsert_scenario_result <- function(
     {completed_at},
     {scenario_id},
     {status},
-    {geojson_result}::jsonb
+    {geojson_result}::jsonb,
+    {errors}::jsonb
   )
   ON CONFLICT (scenario_id) DO UPDATE
   SET
@@ -473,6 +505,7 @@ upsert_scenario_result <- function(
     started_at = EXCLUDED.started_at,
     completed_at = EXCLUDED.completed_at,
     result = EXCLUDED.result,
+    errors = EXCLUDED.errors,
     status = EXCLUDED.status;
   ",
     created_at = timestamp,
@@ -482,6 +515,7 @@ upsert_scenario_result <- function(
     scenario_id = scenario_id,
     status = status,
     geojson_result = toJSON(geojson_result),
+    errors = toJSON(errors),
     .con = connection
   )
   dbExecute(connection, query, immediate = TRUE)
@@ -508,7 +542,8 @@ upsert_scenario_result_statuses <- function(
   start_time,
   finish_time,
   status,
-  result = NULL
+  result = NULL,
+  errors = list()
 ) {
   if (is.null(result)) {
     result = list(type = "FeatureCollection", features = list())
@@ -521,7 +556,8 @@ upsert_scenario_result_statuses <- function(
     completed_at = finish_time,
     scenario_id,
     status,
-    result
+    result,
+    errors
   )
 
   upsert_result_status(
@@ -581,6 +617,7 @@ call_forsys <- function(
     },
     error = function(e) {
       e$status <- "PANIC"
+      e <- set_scenario_error(e, "FORSYS_PREPARATION_ERROR")
       stop(e)
     }
   )
@@ -634,7 +671,9 @@ call_forsys <- function(
 
       if (nrow(out$stand_output) == 0) {
         print(paste("[ERROR] Forsys returned no result for scenario", scenario$id))
-        stop("ForSys returned an empty result.")
+        e <- simpleError("ForSys returned an empty result.")
+        e <- set_scenario_error(e, "FORSYS_EMPTY_RESULT")
+        stop(e)
       }
       
       summarized_metrics <- summarize_metrics(out, stand_data, data_inputs)
@@ -645,6 +684,9 @@ call_forsys <- function(
     },
     error = function(e) {
       e$status <- "FAILURE"
+      if (is.null(e$error_code)) {
+        e <- set_scenario_error(e, "FORSYS_EXECUTION_ERROR")
+      }
       stop(e)
     }
   )
@@ -657,6 +699,7 @@ main <- function(scenario_id) {
   connection <- get_connection()
   FORSYS_PATCHMAX_WD <- Sys.getenv("FORSYS_PATCHMAX_WD", "/app/")
   setwd(FORSYS_PATCHMAX_WD)
+  current_error_code <- "SCENARIO_LOAD_ERROR"
   tryCatch(
     expr = {
       print(paste("[START]", now, "Scenario ID:", scenario_id))
@@ -670,6 +713,7 @@ main <- function(scenario_id) {
 
       stand_ids <- forsys_input$stand_ids
 
+      current_error_code <- "STAND_DATA_ERROR"
       datalayers <- remove_duplicates(datalayers)
       stand_data <- get_stand_data_from_list(connection, stand_ids, datalayers)
 
@@ -684,21 +728,25 @@ main <- function(scenario_id) {
 
       if (!run_with_patchmax) {
         # Prioritize sub-units
+        current_error_code <- "PROJECT_DATA_ERROR"
         projects_data <- forsys_input$projects_data
         stand_data <- merge_project_data(stand_data, projects_data)
       }
 
+      current_error_code <- "SCENARIO_LOAD_ERROR"
       variables <- forsys_input$variables
     },
     error = function(e) {
       completed_at <- now_utc()
+      e <- set_scenario_error(e, current_error_code)
       upsert_scenario_result_statuses(
         connection,
         scenario_id,
         now,
         now,
         completed_at,
-        "PANIC"
+        "PANIC",
+        errors = to_scenario_errors(e)
       )
       print(paste("[OK] Forsys PANIC for scenario", scenario_id))
       print("[DONE - EARLY EXIT]")
@@ -706,6 +754,7 @@ main <- function(scenario_id) {
     }
   )
 
+  current_error_code <- "FORSYS_EXECUTION_ERROR"
   tryCatch(
     expr = {
       forsys_output <- call_forsys(
@@ -720,6 +769,7 @@ main <- function(scenario_id) {
       )
 
       completed_at <- now_utc()
+      current_error_code <- "RESULT_PROCESSING_ERROR"
       result <- to_projects(
         connection,
         scenario,
@@ -736,6 +786,7 @@ main <- function(scenario_id) {
         result
       )
 
+      current_error_code <- "PROJECT_AREA_UPDATE_ERROR"
       delete_project_areas(connection, scenario)
 
       project_areas <- lapply(result$features, function(project) {
@@ -746,13 +797,20 @@ main <- function(scenario_id) {
     },
     error = function(e) {
       completed_at <- now_utc()
+      if (is.null(e$status)) {
+        e$status <- "FAILURE"
+      }
+      if (is.null(e$error_code)) {
+        e <- set_scenario_error(e, current_error_code)
+      }
       upsert_scenario_result_statuses(
         connection,
         scenario_id,
         now,
         now,
         completed_at,
-        e$status
+        e$status,
+        errors = to_scenario_errors(e)
       )
       print(paste("[OK] Forsys", e$status, "for scenario", scenario_id))
       stop(e)
