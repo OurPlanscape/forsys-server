@@ -1,0 +1,24 @@
+substitutions:
+  _IMAGE: us-central1-docker.pkg.dev/planscape-23d66/planscape-forsys/forsys:latest
+  _CACHE_FROM: ""
+
+steps:
+  - name: gcr.io/cloud-builders/docker
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        if [ -n "${_CACHE_FROM}" ]; then
+          docker pull "${_CACHE_FROM}" || true
+          docker build --cache-from "${_CACHE_FROM}" -t "${_IMAGE}" .
+        else
+          docker build -t "${_IMAGE}" .
+        fi
+
+images:
+  - ${_IMAGE}
+
+options:
+  machineType: 'E2_HIGHCPU_16'
+
+timeout: 7200s
