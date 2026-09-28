@@ -664,16 +664,19 @@ call_forsys <- function(
           proj_target_value = sub_units_target_value,
           run_with_patchmax = FALSE
         )
-        out$stand_output  <- out$stand_output %>% rename(proj_id = sub_unit_id)
-        out$project_output <- out$project_output %>% rename(proj_id = sub_unit_id)
       }
       print(paste("[DEBUG] Stand output results:", nrow(out$stand_output)))
 
-      if (nrow(out$stand_output) == 0) {
+      if (nrow(out$stand_output) == 0 || nrow(out$project_output) == 0) {
         print(paste("[ERROR] Forsys returned no result for scenario", scenario$id))
         e <- simpleError("ForSys returned an empty result.")
         e <- set_scenario_error(e, "FORSYS_EMPTY_RESULT")
         stop(e)
+      }
+
+      if (!run_with_patchmax) {
+        out$stand_output  <- out$stand_output %>% rename(proj_id = sub_unit_id)
+        out$project_output <- out$project_output %>% rename(proj_id = sub_unit_id)
       }
       
       summarized_metrics <- summarize_metrics(out, stand_data, data_inputs)
