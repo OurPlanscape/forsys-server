@@ -65,3 +65,6 @@ shell:
 
 get-tag:
 	echo $(VERSION)
+
+test:
+	Rscript --vanilla tests/test_usage_qualified_datalayers.R
