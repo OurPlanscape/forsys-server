@@ -605,8 +605,8 @@ call_forsys <- function(
       sub_units_fixed_target <- variables$sub_units_fixed_target
       sub_units_target_value <- variables$sub_units_target_value
       
-      stand_thresholds <- get_stand_thresholds(connection, thresholds)
       forsys_inputs <- data.table::rbindlist(list(priorities, secondary_metrics, thresholds))
+      stand_thresholds <- get_stand_thresholds(connection, forsys_inputs)
       output_tmp <- forsys_inputs %>%
         remove_duplicates() %>%
         select(id)
