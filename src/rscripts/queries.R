@@ -25,15 +25,11 @@ get_datalayer_metric <- function(datalayer) {
   datalayer$metric
 }
 
-get_datalayer_field_name <- function(datalayer) {
-  paste0("datalayer_", datalayer[["usage_type"]], "_", datalayer[["id"]])
-}
-
 get_stand_metrics <- function(connection, datalayer, stand_ids) {
   datalayer_id <- datalayer$id
   datalayer_name <- datalayer$name
   metric_column <- get_datalayer_metric(datalayer)
-  field_name <- get_datalayer_field_name(datalayer)
+  field_name <- paste0("datalayer_", datalayer_id)
   query <- glue_sql(
     "SELECT
       stand_id,
