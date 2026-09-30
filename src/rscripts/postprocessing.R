@@ -1,14 +1,9 @@
 summarize_metrics <- function(forsys_output, stand_data, datalayers) {
-  fields <- get_datalayer_field_name(datalayers)
-  pcp_fields <- paste0(fields, "_PCP")
+  fields <- paste0("datalayer_", datalayers[["id"]])
+  pcp_fields <- paste0("datalayer_", datalayers[["id"]], "_PCP")
   pcp_sum_fields <- paste0("sum_", pcp_fields)
   stand_data <- stand_data |> forsys::calculate_pcp(fields = fields)
-  output_fields <- paste0(
-    "attain_",
-    datalayers[["usage_type"]],
-    "_",
-    datalayers[["name"]]
-  )
+  output_fields <- paste0("attain_", datalayers[["name"]])
   lookup <- setNames(pcp_sum_fields, output_fields)
   stand_output <- select(
       filter(

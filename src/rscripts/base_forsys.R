@@ -240,7 +240,7 @@ to_scenario_errors <- function(error) {
 get_metric_data <- function(connection, stands, datalayer) {
   datalayer_id <- datalayer$id
   datalayer_name <- datalayer$name
-  field_name <- get_datalayer_field_name(datalayer)
+  field_name <- paste0("datalayer_", datalayer_id)
 
   metric <- get_stand_metrics(
     connection,
@@ -372,7 +372,7 @@ get_stand_thresholds <- function(connection, datalayers) {
     if (is.null(datalayer$threshold)) {
       next
     }
-    curr_threshold <- gsub("value", get_datalayer_field_name(datalayer), datalayer$threshold)
+    curr_threshold <- gsub("value", paste0("datalayer_", datalayer$id), datalayer$threshold)
     all_thresholds <- c(all_thresholds, curr_threshold)
   }
 
@@ -383,7 +383,7 @@ get_stand_thresholds <- function(connection, datalayers) {
 }
 
 remove_duplicates <- function(dataframe) {
-  return(dataframe %>% distinct(id, usage_type, .keep_all = TRUE))
+  return(dataframe %>% distinct(id, .keep_all = TRUE))
 }
 
 export_input <- function(scenario, stand_data) {
@@ -580,9 +580,9 @@ call_forsys <- function(
     expr = {
       data_inputs <- data.table::rbindlist(list(priorities, secondary_metrics))
       weights <- get_weights(priorities)
-      priority_fields <- get_datalayer_field_name(priorities)
+      priority_fields <- paste0("datalayer_", priorities[["id"]])
       spm_fields <- paste0(priority_fields, "_SPM")
-      fields <- get_datalayer_field_name(data_inputs)
+      fields <- paste0("datalayer_", data_inputs[["id"]])
       stand_data <- stand_data %>%
         forsys::calculate_spm(fields=priority_fields) %>% 
         forsys::calculate_pcp(fields=fields) %>%
@@ -609,8 +609,8 @@ call_forsys <- function(
       forsys_inputs <- data.table::rbindlist(list(priorities, secondary_metrics, thresholds))
       output_tmp <- forsys_inputs %>%
         remove_duplicates() %>%
-        select(id, usage_type)
-      output_tmp <- get_datalayer_field_name(output_tmp)
+        select(id)
+      output_tmp <- paste0("datalayer_", output_tmp$id)
       output_fields <- c(output_tmp, "area_acres")
 
       export_input(scenario, stand_data)
