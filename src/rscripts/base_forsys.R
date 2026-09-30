@@ -369,7 +369,7 @@ get_stand_thresholds <- function(connection, datalayers) {
 
   for (i in seq_len(nrow(datalayers))) {
     datalayer <- datalayers[i, ]
-    if (is.null(datalayer$threshold)) {
+    if (is.null(datalayer$threshold) || anyNA(datalayer$threshold)) {
       next
     }
     curr_threshold <- gsub("value", paste0("datalayer_", datalayer$id), datalayer$threshold)
