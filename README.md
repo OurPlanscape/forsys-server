@@ -19,13 +19,26 @@ results back to Planscape format in order to be displayed on Plascape website.
 
 ## Deployment
 
-Currently, this project is being deployed on GCP Cloud Run.
+The deploy command will deploy this to GCP. You can manually deploy from
+your local environment with:
 
-It is necessary to build the Docker image, push it on GCP and then, deploy it. The following command must be used to deploy.
+* `make build-deploy ENV=<target_env>` where `target_env` can be dev, staging or production. The default is dev.
 
-```sh
-$ make build-deploy ENV=<environment>
-```
+Github actions handles the deployment as well as follows:
+
+### merged to main -> deploys to DEV
+### created a prerelease -> deploys to STAGING
+### created a release/promote prerelease to latest -> deploys to PRODUCTION
+
+# cicd
+
+Everything is running from github actions. Install ruff locally and configure
+your editor to work with ruff.
+
+# infrastructure
+
+Check the infrastructure repo. It's all done with terraform.
+
 
 ## Running locally
 
