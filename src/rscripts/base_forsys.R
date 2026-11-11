@@ -217,6 +217,17 @@ get_error_description <- function(error) {
 }
 
 set_scenario_error <- function(error, error_code) {
+  # ForSys returning NULL makes dplyr::rename fail; treat it as an empty result.
+  if (identical(error_code, "FORSYS_EXECUTION_ERROR")) {
+    msg <- conditionMessage(error)
+    if (!is.null(msg) && grepl(
+      "no applicable method for 'rename' applied to an object of class \"NULL\"",
+      msg,
+      fixed = TRUE
+    )) {
+      error_code <- "FORSYS_EMPTY_RESULT"
+    }
+  }
   error$error_code <- error_code
   return(error)
 }
